@@ -44,7 +44,7 @@ def parseM3U(inf):
 
 
 root = tk.Tk()
-root.title("Show M3U)
+root.title("Show M3U")
 
 treeview = ttk.Treeview(root)
 treeview.pack(padx=10, pady=10, expand=True, fill=tk.BOTH)
