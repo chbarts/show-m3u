@@ -118,10 +118,10 @@ def addPlaylist(fnam):
         items[item] = val
 
 def openFile():
-    fnam = filedialog.askopenfilename()
-    print(COMMAND)
-    if fnam:
-        addPlaylist(fnam)
+    fnams = filedialog.askopenfilename(multiple=True, filetypes=[("M3U", "*.m3u")])
+    if fnams:
+        for fnam in fnams:
+            addPlaylist(fnam)
 
 def confPlayer():
     dialog = tk.Toplevel(root)
