@@ -8,6 +8,7 @@ import subprocess
 
 import tkinter as tk
 from tkinter import ttk
+from tkinter import filedialog
 
 COMMAND="mpv"
 REFERRER="--referrer={}"
@@ -89,7 +90,7 @@ treeview.bind("<Key-Return>", itemKeypress)
 
 parser = argparse.ArgumentParser(description='Play M3U File From GUI')
 
-parser.add_argument('-i', '--input', metavar='INFILE', type=str, nargs='+', default='', help='Specify INFILE as M3U input file or files, defaults to one playlist on stdin')
+parser.add_argument('-i', '--input', metavar='INFILE', type=str, nargs='+', default='', help='Specify INFILE as M3U input file or files')
 parser.add_argument('-c', '--command', metavar='COMMAND', type=str, nargs=1, default='', help='Specify the program name to use to play the media')
 parser.add_argument('-a', '--args', metavar='ARGS', type=str, nargs=1, default='', help='Specify the other arguments needed, as one string')
 parser.add_argument('-r', '--referrer', metavar='REFERRER', type=str, nargs=1, default='', help='Specify how to get the player to send the HTTP REFERER header, if needed, as Python format string')
@@ -116,16 +117,54 @@ def addPlaylist(fnam):
         item = treeview.insert(root_item, "end", text=title)
         items[item] = val
 
+def openFile():
+    fnam = filedialog.askopenfilename()
+    if fnam:
+        addPlaylist(fnam)
+
+def confPlayer():
+    dialog = tk.Toplevel(root)
+    dialog.title("Configure Player")
+    dialog.transient(root)
+    dialog.grab_set()
+    tk.Label(dialog, text="Player command:").pack()
+    tcmd = tk.StringVar(root, value=COMMAND)
+    command = tk.Entry(dialog, textvariable=tcmd)
+    command.pack()
+    tk.Label(dialog, text="Arguments:").pack()
+    targ = tk.StringVar(root, value=ARGS)
+    args = tk.Entry(dialog, textvariable=targ)
+    args.pack()
+    tk.Label(dialog, text="Referrer:").pack()
+    tref = tk.StringVar(root, value=REFERRER)
+    referrer = tk.Entry(dialog, textvariable=tref)
+    referrer.pack()
+    tk.Label(dialog, text="Source:").pack()
+    tsour = tk.StringVar(root, value=SOURCE)
+    source = tk.Entry(dialog, textvariable=tsour)
+    source.pack()
+    def on_submit():
+        COMMAND = command.get()
+        ARGS = args.get()
+        REFERRER = referrer.get()
+        SOURCE = source.get()
+        dialog.destroy()
+    tk.Button(dialog, text="Submit", command=on_submit).pack()
+
+menubar = tk.Menu(root)
+filemenu = tk.Menu(menubar, tearoff=0)
+filemenu.add_command(label="Open", command=openFile)
+filemenu.add_separator()
+filemenu.add_command(label="Exit", command=root.quit)
+confmenu = tk.Menu(menubar, tearoff=0)
+confmenu.add_command(label="Player", command=confPlayer)
+menubar.add_cascade(label="File", menu=filemenu)
+menubar.add_cascade(label="Configure", menu=confmenu)
+root.config(menu=menubar)
+
 if len(args.input) > 0:
     for fnam in args.input:
         addPlaylist(fnam)
-else:
-    res = parseM3U(sys.stdin)
-    root_item = treeview.insert("", "end", text="stdin")
-    for val in res:
-        title = list(val)[0]
-        item = treeview.insert(root_item, "end", text=title)
-        items[item] = val
 
 
 root.mainloop()
