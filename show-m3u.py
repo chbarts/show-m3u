@@ -119,6 +119,7 @@ def addPlaylist(fnam):
 
 def openFile():
     fnam = filedialog.askopenfilename()
+    print(COMMAND)
     if fnam:
         addPlaylist(fnam)
 
@@ -144,10 +145,11 @@ def confPlayer():
     source = tk.Entry(dialog, textvariable=tsour)
     source.pack()
     def on_submit():
-        COMMAND = command.get()
-        ARGS = args.get()
-        REFERRER = referrer.get()
-        SOURCE = source.get()
+        global COMMAND, ARGS, REFERRER, SOURCE
+        COMMAND = tcmd.get()
+        ARGS = targ.get()
+        REFERRER = tref.get()
+        SOURCE = tsour.get()
         dialog.destroy()
     tk.Button(dialog, text="Submit", command=on_submit).pack()
 
