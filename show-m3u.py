@@ -18,10 +18,10 @@ def parseM3U(inf):
         if re.match("#EXTM3U", line):
             continue
         elif re.match("#EXTINF.+", line):
-            tagarr = re.findall("([-0-9A-Za-z]+)=\"?([^\"]+)\"?", line)
+            tagarr = re.findall("([-0-9A-Za-z]+)=\"?([^\"]*)\"?", line)
             tags = {}
             if len(tagarr) > 0:
-                title = re.split("([-0-9A-Za-z]+)=\"?([^\"]+)\"?", line)[-1]
+                title = re.split("([-0-9A-Za-z]+)=\"?([^\"]*)\"?", line)[-1]
                 for key, value in tagarr:
                     tags[key] = value
             else:
