@@ -3,6 +3,7 @@
 import re
 import os
 import sys
+import json
 import argparse
 import subprocess
 
@@ -61,6 +62,7 @@ def printValue(id):
     if id in items:
         print("Now Playing")
         val = items[id]
+        print(val)
         title = list(val)[0]
         location = val[title]["location"]
         print(title)
@@ -107,11 +109,14 @@ if len(args.referrer) > 0:
 if len(args.source) > 0:
     SOURCE = args.source[0]
 
+dumpres = {}
+
 def addPlaylist(fnam):
     res = {}
     with open(fnam, 'r') as inf:
         res = parseM3U(inf)
     root_item = treeview.insert("", "end", text=fnam)
+    dumpres[fnam] = res
     for val in res:
         title = list(val)[0]
         item = treeview.insert(root_item, "end", text=title)
@@ -153,9 +158,35 @@ def confPlayer():
         dialog.destroy()
     tk.Button(dialog, text="Submit", command=on_submit).pack()
 
+def dump():
+    global dumpres
+    fnam = filedialog.asksaveasfilename()
+    if fnam:
+        with open(fnam, 'w') as outf:
+            json.dump(dumpres, outf)
+
+def load():
+    global dumpres
+    fnam = filedialog.askopenfilename()
+    if not fnam:
+        return
+    with open(fnam, 'r') as inf:
+        dumpres = json.load(inf)
+    for item in treeview.get_children():
+        treeview.delete(item)
+    for loc in dumpres.keys():
+        root_item = treeview.insert("", "end", text=loc)
+        for val in dumpres[loc]:
+            title = list(val)[0]
+            item = treeview.insert(root_item, "end", text=title)
+            items[item] = val
+
 menubar = tk.Menu(root)
 filemenu = tk.Menu(menubar, tearoff=0)
 filemenu.add_command(label="Open", command=openFile)
+filemenu.add_separator()
+filemenu.add_command(label="Dump", command=dump)
+filemenu.add_command(label="Load", command=load)
 filemenu.add_separator()
 filemenu.add_command(label="Exit", command=root.quit)
 confmenu = tk.Menu(menubar, tearoff=0)
