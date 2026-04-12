@@ -79,29 +79,35 @@ def itemKeypress(event):
     id = treeview.focus()
     printValue(id)
 
-root_item = treeview.insert("", "end", text="Playlist")
-
 treeview.bind("<Button-1>", itemClicked)
 treeview.bind("<Key-Return>", itemKeypress)
 
 parser = argparse.ArgumentParser(description='Play M3U File From GUI')
 
-parser.add_argument('-i', '--input', metavar='INFILE', type=str, nargs=1, default='', help='Specify INFILE as M3U input file, defaults to stdin')
+parser.add_argument('-i', '--input', metavar='INFILE', type=str, nargs='+', default='', help='Specify INFILE as M3U input file or files, defaults to one playlist on stdin')
 
 args = parser.parse_args()
 
-res = {}
+def addPlaylist(fnam):
+    res = {}
+    with open(fnam, 'r') as inf:
+        res = parseM3U(inf)
+    root_item = treeview.insert("", "end", text=fnam)
+    for val in res:
+        title = list(val)[0]
+        item = treeview.insert(root_item, "end", text=title)
+        items[item] = val
 
 if len(args.input) > 0:
-    with open(args.input[0], 'r') as inf:
-        res = parseM3U(inf)
+    for fnam in args.input:
+        addPlaylist(fnam)
 else:
     res = parseM3U(sys.stdin)
+    root_item = treeview.insert("", "end", text="stdin")
+    for val in res:
+        title = list(val)[0]
+        item = treeview.insert(root_item, "end", text=title)
+        items[item] = val
 
-
-for val in res:
-    title = list(val)[0]
-    item = treeview.insert(root_item, "end", text=title)
-    items[item] = val
 
 root.mainloop()
