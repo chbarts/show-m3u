@@ -9,6 +9,11 @@ import subprocess
 import tkinter as tk
 from tkinter import ttk
 
+COMMAND="mpv"
+REFERRER="--referrer={}"
+ARGS="--force-window=yes"
+SOURCE="{}"
+
 def parseM3U(inf):
     res = []
     item = {}
@@ -67,9 +72,9 @@ def printValue(id):
         print("%")
         # subprocess.Popen(["mpv","https://rpn.bozztv.com/gusa/gusa-tvsmystery/index.m3u8"])
         if len(referer) > 0:
-            subprocess.Popen(["mpv", "--force-window=yes", "--referrer={}".format(referer), location])
+            subprocess.Popen([COMMAND, ARGS, REFERRER.format(referer), SOURCE.format(location)])
         else:
-            subprocess.Popen(["mpv", "--force-window=yes", location])
+            subprocess.Popen([COMMAND, ARGS, SOURCE.format(location)])
 
 def itemClicked(event):
     id = treeview.identify_row(event.y)
@@ -85,8 +90,21 @@ treeview.bind("<Key-Return>", itemKeypress)
 parser = argparse.ArgumentParser(description='Play M3U File From GUI')
 
 parser.add_argument('-i', '--input', metavar='INFILE', type=str, nargs='+', default='', help='Specify INFILE as M3U input file or files, defaults to one playlist on stdin')
+parser.add_argument('-c', '--command', metavar='COMMAND', type=str, nargs=1, default='', help='Specify the program name to use to play the media')
+parser.add_argument('-a', '--args', metavar='ARGS', type=str, nargs=1, default='', help='Specify the other arguments needed, as one string')
+parser.add_argument('-r', '--referrer', metavar='REFERRER', type=str, nargs=1, default='', help='Specify how to get the player to send the HTTP REFERER header, if needed, as Python format string')
+parser.add_argument('-s', '--source', metavar='SOURCE', type=str, nargs=1, default='', help='Specify how to pass the source into the player, as Python format string')
 
 args = parser.parse_args()
+
+if len(args.command) > 0:
+    COMMAND = args.command[0]
+if len(args.args) > 0:
+    ARGS = args.args[0]
+if len(args.referrer) > 0:
+    REFERRER = args.referrer[0]
+if len(args.source) > 0:
+    SOURCE = args.source[0]
 
 def addPlaylist(fnam):
     res = {}
