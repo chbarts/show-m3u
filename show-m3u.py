@@ -128,6 +128,22 @@ def openFile():
         for fnam in fnams:
             addPlaylist(fnam)
 
+def openList():
+    fnam = filedialog.askopenfilename()
+    if not fnam:
+        return
+    with open(fnam, 'r') as inf:
+        for ln in inf:
+            addPlaylist(ln.rstrip())
+
+def saveList():
+    fnam = filedialog.asksaveasfilename()
+    if not fnam:
+        return
+    with open(fnam, 'w', encoding='utf-8') as outf:
+        for loc in dumpres.keys():
+            outf.write("{}\n".format(loc))
+
 def confPlayer():
     dialog = tk.Toplevel(root)
     dialog.title("Configure Player")
@@ -185,8 +201,11 @@ menubar = tk.Menu(root)
 filemenu = tk.Menu(menubar, tearoff=0)
 filemenu.add_command(label="Open", command=openFile)
 filemenu.add_separator()
-filemenu.add_command(label="Dump", command=dump)
-filemenu.add_command(label="Load", command=load)
+filemenu.add_command(label="Save List Of M3U Files", command=saveList)
+filemenu.add_command(label="Open List Of M3U Files", command=openList)
+filemenu.add_separator()
+filemenu.add_command(label="Dump All State", command=dump)
+filemenu.add_command(label="Load New State", command=load)
 filemenu.add_separator()
 filemenu.add_command(label="Exit", command=root.quit)
 confmenu = tk.Menu(menubar, tearoff=0)
