@@ -93,6 +93,7 @@ treeview.bind("<Key-Return>", itemKeypress)
 parser = argparse.ArgumentParser(description='Play M3U File From GUI')
 
 parser.add_argument('-i', '--input', metavar='INFILE', type=str, nargs='+', default='', help='Specify INFILE as M3U input file or files')
+parser.add_argument('-l', '--list', metavar='INFILE', type=str, nargs=1, default='', help='Specify INFILE as list of M3U files')
 parser.add_argument('-c', '--command', metavar='COMMAND', type=str, nargs=1, default='', help='Specify the program name to use to play the media')
 parser.add_argument('-a', '--args', metavar='ARGS', type=str, nargs=1, default='', help='Specify the other arguments needed, as one string')
 parser.add_argument('-r', '--referrer', metavar='REFERRER', type=str, nargs=1, default='', help='Specify how to get the player to send the HTTP REFERER header, if needed, as Python format string')
@@ -217,6 +218,10 @@ root.config(menu=menubar)
 if len(args.input) > 0:
     for fnam in args.input:
         addPlaylist(fnam)
-
+if len(args.list) > 0:
+    with open(args.list[0], 'r') as inf:
+        for ln in inf:
+            addPlaylist(ln.rstrip())
+    
 
 root.mainloop()
