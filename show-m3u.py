@@ -86,6 +86,7 @@ def itemClicked(event):
 def itemKeypress(event):
     id = treeview.focus()
     printValue(id)
+        
 
 treeview.bind("<Button-1>", itemClicked)
 treeview.bind("<Key-Return>", itemKeypress)
@@ -111,6 +112,25 @@ if len(args.source) > 0:
     SOURCE = args.source[0]
 
 dumpres = {}
+
+def rightClicked(event):
+    id = treeview.identify_row(event.y)
+    if id in treeview.get_children():
+        root_item = treeview.item(id)
+        loc = root_item['text']
+        res = {}
+        with open(loc, 'r') as inf:
+            res = parseM3U(inf)
+        for cid in treeview.get_children(id):
+            treeview.delete(cid)
+        dumpres[loc] = res
+        for val in res:
+            title = list(val)[0]
+            item = treeview.insert(id, "end", text=title)
+            items[item] = val
+
+treeview.bind("<Button-2>", rightClicked)
+treeview.bind("<Button-3>", rightClicked)
 
 def addPlaylist(fnam):
     res = {}
