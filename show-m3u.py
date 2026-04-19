@@ -158,7 +158,7 @@ def findConfigureFile():
 
 def useConfigureFile(fname):
     global COMMAND, REFERRER, ARGS, SOURCE
-    config = ConfigParser(allow_no_value=True)
+    config = ConfigParser(allow_no_value=True,delimiters=('=',))
     config.read_file(open(fname))
     if 'vars' in config.sections():
         if 'command' in list(config['vars']):
