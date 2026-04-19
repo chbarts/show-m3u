@@ -11,6 +11,8 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 
+from configparser import ConfigParser
+
 COMMAND="mpv"
 REFERRER="--referrer={}"
 ARGS="--force-window=yes"
@@ -48,7 +50,6 @@ def parseM3U(inf):
             res.append(item)
             item = {}
     return res
-
 
 root = tk.Tk()
 root.title("Show M3U")
@@ -90,26 +91,6 @@ def itemKeypress(event):
 
 treeview.bind("<Button-1>", itemClicked)
 treeview.bind("<Key-Return>", itemKeypress)
-
-parser = argparse.ArgumentParser(description='Play M3U File From GUI')
-
-parser.add_argument('-i', '--input', metavar='INFILE', type=str, nargs='+', default='', help='Specify INFILE as M3U input file or files')
-parser.add_argument('-l', '--list', metavar='INFILE', type=str, nargs=1, default='', help='Specify INFILE as list of M3U files')
-parser.add_argument('-c', '--command', metavar='COMMAND', type=str, nargs=1, default='', help='Specify the program name to use to play the media')
-parser.add_argument('-a', '--args', metavar='ARGS', type=str, nargs=1, default='', help='Specify the other arguments needed, as one string')
-parser.add_argument('-r', '--referrer', metavar='REFERRER', type=str, nargs=1, default='', help='Specify how to get the player to send the HTTP REFERER header, if needed, as Python format string')
-parser.add_argument('-s', '--source', metavar='SOURCE', type=str, nargs=1, default='', help='Specify how to pass the source into the player, as Python format string')
-
-args = parser.parse_args()
-
-if len(args.command) > 0:
-    COMMAND = args.command[0]
-if len(args.args) > 0:
-    ARGS = args.args[0]
-if len(args.referrer) > 0:
-    REFERRER = args.referrer[0]
-if len(args.source) > 0:
-    SOURCE = args.source[0]
 
 dumpres = {}
 
@@ -164,6 +145,33 @@ def saveList():
     with open(fnam, 'w', encoding='utf-8') as outf:
         for loc in dumpres.keys():
             outf.write("{}\n".format(loc))
+
+def findConfigureFile():
+    if 'APPDATA' in os.environ:
+        return os.path.join(os.environ['APPDATA'], 'show_m3u.ini')
+    elif 'XDG_CONFIG_HOME' in os.environ:
+        return os.path.join(os.environ['XDG_CONFIG_HOME'], 'show_m3u.ini')
+    elif 'HOME' in os.environ:
+        return os.path.join(os.environ['HOME'], '.show_m3urc')
+    else:
+        return None
+
+def useConfigureFile(fname):
+    global COMMAND, REFERRER, ARGS, SOURCE
+    config = ConfigParser(allow_no_value=True)
+    config.read_file(open(fname))
+    if 'vars' in config.sections():
+        if 'command' in list(config['vars']):
+            COMMAND = config['vars']['command']
+        if 'referrer' in list(config['vars']):
+            REFERRER = config['vars']['referrer']
+        if 'args' in list(config['vars']):
+            ARGS = config['vars']['args']
+        if 'source' in list(config['vars']):
+            SOURCE = config['vars']['source']
+    if 'files' in config.sections():
+        for fn in list(config['files']):
+            addPlaylist(fn)
 
 def confPlayer():
     dialog = tk.Toplevel(root)
@@ -235,6 +243,27 @@ menubar.add_cascade(label="File", menu=filemenu)
 menubar.add_cascade(label="Configure", menu=confmenu)
 root.config(menu=menubar)
 
+parser = argparse.ArgumentParser(description='Play M3U File From GUI')
+
+parser.add_argument('-i', '--input', metavar='INFILE', type=str, nargs='+', default='', help='Specify INFILE as M3U input file or files')
+parser.add_argument('-l', '--list', metavar='INFILE', type=str, nargs=1, default='', help='Specify INFILE as list of M3U files')
+parser.add_argument('-c', '--command', metavar='COMMAND', type=str, nargs=1, default='', help='Specify the program name to use to play the media')
+parser.add_argument('-a', '--args', metavar='ARGS', type=str, nargs=1, default='', help='Specify the other arguments needed, as one string')
+parser.add_argument('-r', '--referrer', metavar='REFERRER', type=str, nargs=1, default='', help='Specify how to get the player to send the HTTP REFERER header, if needed, as Python format string')
+parser.add_argument('-s', '--source', metavar='SOURCE', type=str, nargs=1, default='', help='Specify how to pass the source into the player, as Python format string')
+parser.add_argument('-C', '--configure', metavar='CONFIG_FILE', type=str, nargs=1, default='', help='Specify a configure file that can set options and contain a list of M3U files to load. Otherwise, the program looks for show_m3u.ini in XDG_CONFIG_HOME or APPDATA if set in environment, or .show_m3urc in HOME')
+
+args = parser.parse_args()
+
+if len(args.command) > 0:
+    COMMAND = args.command[0]
+if len(args.args) > 0:
+    ARGS = args.args[0]
+if len(args.referrer) > 0:
+    REFERRER = args.referrer[0]
+if len(args.source) > 0:
+    SOURCE = args.source[0]
+
 if len(args.input) > 0:
     for fnam in args.input:
         addPlaylist(fnam)
@@ -242,6 +271,11 @@ if len(args.list) > 0:
     with open(args.list[0], 'r') as inf:
         for ln in inf:
             addPlaylist(ln.rstrip())
-    
+if len(args.configure) > 0:
+    useConfigureFile(args.configure[0])
+else:
+    conf = findConfigureFile()
+    if conf:
+        useConfigureFile(conf)
 
 root.mainloop()
