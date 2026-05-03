@@ -13,6 +13,8 @@ from tkinter import filedialog
 
 from configparser import ConfigParser
 
+from pathlib import Path
+
 COMMAND="mpv"
 REFERRER="--referrer={}"
 ARGS="--force-window=yes"
@@ -159,12 +161,17 @@ def saveList():
             outf.write("{}\n".format(loc))
 
 def findConfigureFile():
+    path = None
     if 'APPDATA' in os.environ:
-        return os.path.join(os.environ['APPDATA'], 'show_m3u.ini')
+        path = Path(os.environ['APPDATA'], 'show_m3u.ini')
     elif 'XDG_CONFIG_HOME' in os.environ:
-        return os.path.join(os.environ['XDG_CONFIG_HOME'], 'show_m3u.ini')
+        path = Path(os.environ['XDG_CONFIG_HOME'], 'show_m3u.ini')
     elif 'HOME' in os.environ:
-        return os.path.join(os.environ['HOME'], '.show_m3urc')
+        path = Path(os.environ['HOME'], '.show_m3urc')
+    else:
+        return None
+    if path.is_file():
+        return path
     else:
         return None
 
