@@ -53,7 +53,7 @@ def parseM3U(inf):
             item[title]["location"] = line
             res.append(item)
             item = {}
-    return (ptitle, res)
+    return (pltitle, res)
 
 root = tk.Tk()
 root.title("Show M3U")
