@@ -22,10 +22,14 @@ def parseM3U(inf):
     res = []
     item = {}
     title = ""
+    pltitle = ""
     for line in inf:
         line = line.rstrip()
         if re.match("#EXTM3U", line):
             continue
+        elif re.match("#PLAYLIST:.+", line):
+            grp = re.match("#PLAYLIST:(.+)", line)
+            pltitle = grp.groups()[0]
         elif re.match("#EXTINF.+", line):
             tagarr = re.findall("([-0-9A-Za-z]+)=\"?([^\"]*)\"?", line)
             tags = {}
@@ -49,7 +53,7 @@ def parseM3U(inf):
             item[title]["location"] = line
             res.append(item)
             item = {}
-    return res
+    return (ptitle, res)
 
 root = tk.Tk()
 root.title("Show M3U")
@@ -99,9 +103,10 @@ def rightClicked(event):
     if id in treeview.get_children():
         root_item = treeview.item(id)
         loc = root_item['text']
+        ptitle = ""
         res = {}
         with open(loc, 'r') as inf:
-            res = parseM3U(inf)
+            ptitle, res = parseM3U(inf)
         for cid in treeview.get_children(id):
             treeview.delete(cid)
         dumpres[loc] = res
@@ -115,9 +120,13 @@ treeview.bind("<Button-3>", rightClicked)
 
 def addPlaylist(fnam):
     res = {}
+    ptitle = ""
     with open(fnam, 'r') as inf:
-        res = parseM3U(inf)
-    root_item = treeview.insert("", "end", text=fnam)
+        ptitle, res = parseM3U(inf)
+    nam = fnam
+    if len(ptitle) > 0:
+        nam = fnam
+    root_item = treeview.insert("", "end", text=nam)
     dumpres[fnam] = res
     for val in res:
         title = list(val)[0]
