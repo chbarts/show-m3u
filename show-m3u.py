@@ -50,9 +50,12 @@ def parseM3U(inf):
                 tags[key] = value
             item[title]["tags"] = tags
         else:
-            item[title]["location"] = line
-            res.append(item)
-            item = {}
+            if title in item:
+                item[title]["location"] = line
+                res.append(item)
+                item = {}
+            else:
+                res.append({line: {"location": line}})
     return (pltitle, res)
 
 root = tk.Tk()
