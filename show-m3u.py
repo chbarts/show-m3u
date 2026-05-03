@@ -125,7 +125,7 @@ def addPlaylist(fnam):
         ptitle, res = parseM3U(inf)
     nam = fnam
     if len(ptitle) > 0:
-        nam = fnam
+        nam = ptitle
     root_item = treeview.insert("", "end", text=nam)
     dumpres[fnam] = res
     for val in res:
