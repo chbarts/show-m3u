@@ -5,6 +5,7 @@ import os
 import sys
 import json
 import argparse
+import threading
 import subprocess
 
 import tkinter as tk
@@ -63,10 +64,21 @@ def parseM3U(inf):
 root = tk.Tk()
 root.title("Show M3U")
 
-treeview = ttk.Treeview(root)
+frame = ttk.Frame(root, borderwidth=1)
+frame.grid(row=0, column=0, sticky=('nsew'))
+
+root.columnconfigure(0, weight=1)
+root.rowconfigure(0, weight=1)
+
+treeview = ttk.Treeview(frame)
 treeview.pack(padx=10, pady=10, expand=True, fill=tk.BOTH)
 
+procs = ttk.Treeview(frame, columns=('args'))
+procs.pack(padx=1, pady=1, expand=True, fill=tk.BOTH)
+# procs.insert('', 'end', text='mpv', values=('running'))
+
 items = {}
+procdct = {}
 
 def printValue(id):
     if id in items:
@@ -84,10 +96,13 @@ def printValue(id):
             print("{} = {}".format(key, value))
         print("%")
         # subprocess.Popen(["mpv","https://rpn.bozztv.com/gusa/gusa-tvsmystery/index.m3u8"])
+        proc = None
         if len(referer) > 0:
-            subprocess.Popen([COMMAND, ARGS, REFERRER.format(referer), SOURCE.format(location)])
+            proc = subprocess.Popen([COMMAND, ARGS, REFERRER.format(referer), SOURCE.format(location)])
         else:
-            subprocess.Popen([COMMAND, ARGS, SOURCE.format(location)])
+            proc = subprocess.Popen([COMMAND, ARGS, SOURCE.format(location)])
+        ref = procs.insert('', 'end', text=COMMAND, values=(location))
+        procdct[ref] = proc
 
 def itemClicked(event):
     id = treeview.identify_row(event.y)
@@ -97,9 +112,36 @@ def itemKeypress(event):
     id = treeview.focus()
     printValue(id)
         
+def procClicked(event):
+    id = procs.identify_row(event.y)
+    proc = procdct[id]
+    proc.kill()
+    procs.delete(id)
+    procdct.pop(id, None)
+
+def procKeypress(event):
+    id = procs.focus()
+    proc = procdct[id]
+    proc.kill()
+    procs.delete(id)
+    procdct.pop(id, None)
+
+def checker():
+    dead = []
+    for id in list(procdct):
+        proc = procdct[id]
+        if proc.poll(): # If process is dead
+            procs.delete(id)
+            dead.append(id)
+    for id in dead:
+        procdct.pop(id, None)
+    root.after(1000, checker) # Run this function every second, but don't block event loop
 
 treeview.bind("<Button-1>", itemClicked)
 treeview.bind("<Key-Return>", itemKeypress)
+
+procs.bind("<Button-1>", procClicked)
+procs.bind("<Key-Return>", procKeypress)
 
 dumpres = {}
 
@@ -297,4 +339,5 @@ else:
     if conf:
         useConfigureFile(conf)
 
+checker()
 root.mainloop()
