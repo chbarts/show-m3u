@@ -5,7 +5,6 @@ import os
 import sys
 import json
 import argparse
-import threading
 import subprocess
 
 import tkinter as tk
