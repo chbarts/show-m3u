@@ -63,18 +63,19 @@ def parseM3U(inf):
 root = tk.Tk()
 root.title("Show M3U")
 
-frame = ttk.Frame(root, borderwidth=1)
-frame.grid(row=0, column=0, sticky=('nsew'))
+pane = ttk.PanedWindow()
+pane.grid(row=0, column=0, sticky=('nsew'))
 
 root.columnconfigure(0, weight=1)
 root.rowconfigure(0, weight=1)
 
-treeview = ttk.Treeview(frame)
-treeview.pack(padx=10, pady=10, expand=True, fill=tk.BOTH)
+treeview = ttk.Treeview(root)
 
-procs = ttk.Treeview(frame, columns=('args'))
-procs.pack(padx=1, pady=1, expand=True, fill=tk.BOTH)
+procs = ttk.Treeview(root, columns=('args'), height=2)
 # procs.insert('', 'end', text='mpv', values=('running'))
+
+pane.add(treeview)
+pane.add(procs)
 
 items = {}
 procdct = {}
