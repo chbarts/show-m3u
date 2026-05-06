@@ -130,7 +130,7 @@ def checker():
     dead = []
     for id in list(procdct):
         proc = procdct[id]
-        if proc.poll(): # If process is dead
+        if proc.poll() is not None: # If process is dead
             procs.delete(id)
             dead.append(id)
     for id in dead:
