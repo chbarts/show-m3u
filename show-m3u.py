@@ -21,17 +21,18 @@ ARGS="--force-window=yes"
 SOURCE="{}"
 
 def parseM3U(inf):
-    res = []
+    resarr = []
+    res = {}
     item = {}
     title = ""
-    pltitle = ""
+    res["title"] = None
     for line in inf:
         line = line.rstrip()
         if re.match("#EXTM3U", line):
             continue
         elif re.match("#PLAYLIST:.+", line):
             grp = re.match("#PLAYLIST:(.+)", line)
-            pltitle = grp.groups()[0]
+            res["title"] = grp.groups()[0]
         elif re.match("#EXTINF.+", line):
             tagarr = re.findall("([-0-9A-Za-z]+)=\"?([^\"]*)\"?", line)
             tags = {}
@@ -54,11 +55,12 @@ def parseM3U(inf):
         else:
             if title in item:
                 item[title]["location"] = line
-                res.append(item)
+                resarr.append(item)
                 item = {}
             else:
-                res.append({line: {"location": line}})
-    return (pltitle, res)
+                resarr.append({line: {"location": line}})
+    res["array"] = resarr
+    return res
 
 root = tk.Tk()
 root.title("Show M3U")
@@ -150,14 +152,13 @@ def rightClicked(event):
     if id in treeview.get_children():
         root_item = treeview.item(id)
         loc = root_item['text']
-        ptitle = ""
         res = {}
         with open(loc, 'r') as inf:
-            ptitle, res = parseM3U(inf)
+            res = parseM3U(inf)
         for cid in treeview.get_children(id):
             treeview.delete(cid)
         dumpres[loc] = res
-        for val in res:
+        for val in res["array"]:
             title = list(val)[0]
             item = treeview.insert(id, "end", text=title)
             items[item] = val
@@ -167,15 +168,14 @@ treeview.bind("<Button-3>", rightClicked)
 
 def addPlaylist(fnam):
     res = {}
-    ptitle = ""
     with open(fnam, 'r') as inf:
-        ptitle, res = parseM3U(inf)
+        res = parseM3U(inf)
     nam = fnam
-    if len(ptitle) > 0:
-        nam = ptitle
+    if res["title"] is not None:
+        nam = res["title"]
     root_item = treeview.insert("", "end", text=nam)
     dumpres[fnam] = res
-    for val in res:
+    for val in res["array"]:
         title = list(val)[0]
         item = treeview.insert(root_item, "end", text=title)
         items[item] = val
@@ -281,8 +281,12 @@ def load():
     for item in treeview.get_children():
         treeview.delete(item)
     for loc in dumpres.keys():
-        root_item = treeview.insert("", "end", text=loc)
-        for val in dumpres[loc]:
+        chan = dumpres[loc]
+        name = loc
+        if chan["title"] is not None:
+            name = chan["title"]
+        root_item = treeview.insert("", "end", text=name)
+        for val in chan["array"]:
             title = list(val)[0]
             item = treeview.insert(root_item, "end", text=title)
             items[item] = val
