@@ -320,6 +320,7 @@ def load():
             items[item] = val
 
 def doSearch(event):
+    global items
     for item in treeview.get_children():
         treeview.delete(item)
     items = {}
