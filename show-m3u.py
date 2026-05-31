@@ -224,7 +224,7 @@ def search(term):
             plname = val["title"]
         for stream in val["array"]:
             title = list(stream)[0]
-            if re.match(term, title):
+            if re.search(term, title):
                 if loc not in res:
                     res[loc] = {"title": plname, "array": []}
                 res[loc]["array"].append(stream)
