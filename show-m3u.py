@@ -65,19 +65,30 @@ def parseM3U(inf):
 root = tk.Tk()
 root.title("Show M3U")
 
-pane = ttk.PanedWindow()
-pane.grid(row=0, column=0, sticky=('nsew'))
-
 root.columnconfigure(0, weight=1)
 root.rowconfigure(0, weight=1)
+
+pane = ttk.PanedWindow(root, orient=tk.VERTICAL)
+pane.grid(row=0, column=0, sticky=('nsew'))
+pane.grid_columnconfigure(0, weight=1)
+
+searchframe = ttk.Frame(pane)
+searchframe.grid(row=0, column=0, sticky=("nsew"))
+label = ttk.Label(searchframe, text='Enter regular expression, blank to reset:')
+label.grid(column=0, row=0, sticky=("ew"))
+searchterm = ttk.Entry(searchframe)
+searchterm.grid(column=1, row=0, sticky=("ew"))
+searchbutton = ttk.Button(searchframe, text='Search/Reset')
+searchbutton.grid(column=2, row=0, sticky=("ew"))
 
 treeview = ttk.Treeview(root)
 
 procs = ttk.Treeview(root, columns=('args'), height=2)
 # procs.insert('', 'end', text='mpv', values=('running'))
 
-pane.add(treeview)
-pane.add(procs)
+pane.add(searchframe, weight=0)
+pane.add(treeview, weight=6)
+pane.add(procs, weight=1)
 
 items = {}
 procdct = {}
@@ -113,20 +124,22 @@ def itemClicked(event):
 def itemKeypress(event):
     id = treeview.focus()
     printValue(id)
-        
+
 def procClicked(event):
     id = procs.identify_row(event.y)
-    proc = procdct[id]
-    proc.kill()
-    procs.delete(id)
-    procdct.pop(id, None)
+    if id in procdct:
+        proc = procdct[id]
+        proc.kill()
+        procs.delete(id)
+        procdct.pop(id, None)
 
 def procKeypress(event):
     id = procs.focus()
-    proc = procdct[id]
-    proc.kill()
-    procs.delete(id)
-    procdct.pop(id, None)
+    if id in procdct:
+        proc = procdct[id]
+        proc.kill()
+        procs.delete(id)
+        procdct.pop(id, None)
 
 def checker():
     dead = []
@@ -201,6 +214,21 @@ def saveList():
     with open(fnam, 'w', encoding='utf-8') as outf:
         for loc in dumpres.keys():
             outf.write("{}\n".format(loc))
+
+def search(term):
+    res = {}
+    for loc in dumpres.keys():
+        val = dumpres[loc]
+        plname = loc
+        if val["title"] is not None:
+            plname = val["title"]
+        for stream in val["array"]:
+            title = list(stream)[0]
+            if re.match(term, title):
+                if loc not in res:
+                    res[loc] = {"title": plname, "array": []}
+                res[loc]["array"].append(stream)
+    return res
 
 def findConfigureFile():
     path = None
@@ -290,6 +318,39 @@ def load():
             title = list(val)[0]
             item = treeview.insert(root_item, "end", text=title)
             items[item] = val
+
+def doSearch(event):
+    for item in treeview.get_children():
+        treeview.delete(item)
+    items = {}
+    term = searchterm.get()
+    if re.match("^\\s+$", term) or (len(term) == 0):
+        for loc in dumpres.keys():
+            chan = dumpres[loc]
+            name = loc
+            if chan["title"] is not None:
+                name = chan["title"]
+            root_item = treeview.insert("", "end", text=name)
+            for val in chan["array"]:
+                title = list(val)[0]
+                item = treeview.insert(root_item, "end", text=title)
+                items[item] = val
+    else:
+        res = search(term)
+        for loc in res.keys():
+            chan = res[loc]
+            name = loc
+            if chan["title"] is not None:
+                name = chan["title"]
+            root_item = treeview.insert("", "end", text=name)
+            for val in chan["array"]:
+                title = list(val)[0]
+                item = treeview.insert(root_item, "end", text=title)
+                items[item] = val
+
+
+searchbutton.bind("<Button-1>", doSearch)
+searchterm.bind("<Key-Return>", doSearch)
 
 menubar = tk.Menu(root)
 filemenu = tk.Menu(menubar, tearoff=0)
