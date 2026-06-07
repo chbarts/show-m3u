@@ -195,6 +195,7 @@ def addPlaylist(fnam):
         title = list(val)[0]
         item = treeview.insert(root_item, "end", text=title)
         items[item] = val
+    return res
 
 def openFile():
     fnams = filedialog.askopenfilename(multiple=True, filetypes=[("M3U", "*.m3u")])
@@ -264,6 +265,26 @@ def useConfigureFile(fname):
     if 'files' in config.sections():
         for fn in list(config['files']):
             addPlaylist(fn)
+
+def reloadConfigure():
+    global items
+    global dumpres
+    for item in treeview.get_children():
+        treeview.delete(item)
+    items = {}
+    dumpres = {}
+    path = findConfigureFile()
+    if path:
+        useConfigureFile(path)
+
+def reloadCurrentFiles():
+    global items
+    global dumpres
+    files = dumpres.keys()
+    items = {}
+    dumpres = {}
+    for fnam in files:
+        addPlaylist(fnam)
 
 def confPlayer():
     dialog = tk.Toplevel(root)
@@ -365,6 +386,9 @@ filemenu.add_command(label="Open List Of M3U Files", command=openList)
 filemenu.add_separator()
 filemenu.add_command(label="Dump All State", command=dump)
 filemenu.add_command(label="Load New State", command=load)
+filemenu.add_separator()
+filemenu.add_command(label="Reload Current Playlists", command=reloadCurrentFiles)
+filemenu.add_command(label="Reload Configure", command=reloadConfigure)
 filemenu.add_separator()
 filemenu.add_command(label="Exit", command=root.quit)
 confmenu = tk.Menu(menubar, tearoff=0)
