@@ -181,6 +181,9 @@ treeview.bind("<Button-3>", rightClicked)
 
 def addPlaylist(fnam):
     res = {}
+    path = Path(fnam)
+    if not path.is_file():
+        return res
     with open(fnam, 'r') as inf:
         res = parseM3U(inf)
     nam = fnam
