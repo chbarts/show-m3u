@@ -41,7 +41,7 @@ def parseM3U(inf):
                 for key, value in tagarr:
                     tags[key] = value
             else:
-                title = re.split(":\\S+\\s", line)[-1]
+                title = re.split(":-?\\d+,\\s?", line)[-1]
             tgrp = re.match(",(.+)", title)
             if tgrp:
                 title = tgrp.groups()[0]
