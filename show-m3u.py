@@ -145,8 +145,6 @@ def procClicked(event):
         proc.kill()
         procs.delete(id)
         procdct.pop(id, None)
-    if len(list(procdct)) > 0:
-        root.after(1000, checker) # Run this function every second, but don't block event loop
 
 def procKeypress(event):
     id = procs.focus()
@@ -155,8 +153,6 @@ def procKeypress(event):
         proc.kill()
         procs.delete(id)
         procdct.pop(id, None)
-    if len(list(procdct)) > 0:
-        root.after(1000, checker) # Run this function every second, but don't block event loop
 
 treeview.bind("<Button-1>", itemClicked)
 treeview.bind("<Key-Return>", itemKeypress)
