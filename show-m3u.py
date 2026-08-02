@@ -10,6 +10,7 @@ import subprocess
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
+from tkinter import N, S, E, W
 
 from configparser import ConfigParser
 
@@ -68,26 +69,49 @@ root.title("Show M3U")
 root.columnconfigure(0, weight=1)
 root.rowconfigure(0, weight=1)
 
+tk.Grid.rowconfigure(root, 0, weight=1)
+tk.Grid.columnconfigure(root, 0, weight=1)
+
 pane = ttk.PanedWindow(root, orient=tk.VERTICAL)
-pane.grid(row=0, column=0, sticky=('nsew'))
+pane.grid(row=0, column=0, sticky=N+S+E+W)
 pane.grid_columnconfigure(0, weight=1)
+pane.grid_columnconfigure(1, weight=1)
+pane.grid_columnconfigure(2, weight=1)
+pane.grid_rowconfigure(0, weight=1)
+pane.grid_rowconfigure(1, weight=1)
+pane.grid_rowconfigure(2, weight=1)
 
 searchframe = ttk.Frame(pane)
-searchframe.grid(row=0, column=0, sticky=("nsew"))
+searchframe.grid(row=0, column=0, sticky=N+S+E+W)
+searchframe.grid_columnconfigure(0, weight=1)
+searchframe.grid_columnconfigure(1, weight=1)
+searchframe.grid_columnconfigure(2, weight=1)
 label = ttk.Label(searchframe, text='Enter regular expression, blank to reset:')
-label.grid(column=0, row=0, sticky=("ew"))
+label.grid(column=0, row=0, sticky=N+S+E+W)
 searchterm = ttk.Entry(searchframe)
-searchterm.grid(column=1, row=0, sticky=("ew"))
+searchterm.grid(column=1, row=0, sticky=E+W)
 searchbutton = ttk.Button(searchframe, text='Search/Reset')
-searchbutton.grid(column=2, row=0, sticky=("ew"))
+searchbutton.grid(column=2, row=0, sticky=N+S+E+W)
 
-treeview = ttk.Treeview(root)
+treeframe = ttk.Frame(pane)
+treeframe.grid(row=1, column=0, sticky=N+S+E+W)
+treeframe.grid_columnconfigure(0, weight=1)
+treeframe.grid_rowconfigure(0, weight=1)
+
+treeview = ttk.Treeview(treeframe)
+treeview.grid(column=0, row=0, sticky=N+S+E+W)
+
+scrollbar = ttk.Scrollbar(treeframe)
+scrollbar.grid(column=1, row=0, sticky=N+S)
+
+treeview['yscrollcommand'] = scrollbar.set
+scrollbar.config(command=treeview.yview)
 
 procs = ttk.Treeview(root, columns=('args'), height=2)
 # procs.insert('', 'end', text='mpv', values=('running'))
 
 pane.add(searchframe, weight=0)
-pane.add(treeview, weight=6)
+pane.add(treeframe, weight=6)
 pane.add(procs, weight=1)
 
 items = {}
