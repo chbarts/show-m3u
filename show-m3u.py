@@ -110,7 +110,7 @@ procs = ttk.Treeview(root, columns=('args'), height=2)
 
 pane.add(searchframe, weight=0)
 pane.add(treeframe, weight=6)
-pane.add(procs, weight=1)
+pane.add(procs, weight=0)
 
 items = {}
 procdct = {}
