@@ -18,6 +18,7 @@ from pathlib import Path
 
 COMMAND="mpv"
 REFERRER="--referrer={}"
+USER_AGENT="--user-agent={}"
 ARGS="--force-window=yes"
 SOURCE="{}"
 
@@ -137,15 +138,22 @@ def printValue(id):
         print(title)
         print(location)
         referer = ""
+        user_agent = ""
         if "http-referrer" in val[title]["tags"].keys():
             referer = val[title]["tags"]["http-referrer"]
+        if "http-user-agent" in val[title]["tags"].keys():
+            user_agent = val[title]["tags"]["http-user-agent"]
         for key, value in val[title]["tags"].items():
             print("{} = {}".format(key, value))
         print("%")
         # subprocess.Popen(["mpv","https://rpn.bozztv.com/gusa/gusa-tvsmystery/index.m3u8"])
         proc = None
-        if len(referer) > 0:
+        if (len(user_agent) > 0) and (len(referer) > 0):
+            proc = subprocess.Popen([COMMAND, ARGS, REFERRER.format(referer), USER_AGENT.format(user_agent), SOURCE.format(location)])
+        elif len(referer) > 0:
             proc = subprocess.Popen([COMMAND, ARGS, REFERRER.format(referer), SOURCE.format(location)])
+        elif len(user_agent) > 0:
+            proc = subprocess.Popen([COMMAND, ARGS, USER_AGENT.format(user_agent), SOURCE.format(location)])
         else:
             proc = subprocess.Popen([COMMAND, ARGS, SOURCE.format(location)])
         ref = procs.insert('', 'end', text=COMMAND, values=(location))
@@ -429,6 +437,7 @@ parser.add_argument('-l', '--list', metavar='INFILE', type=str, nargs=1, default
 parser.add_argument('-c', '--command', metavar='COMMAND', type=str, nargs=1, default='', help='Specify the program name to use to play the media')
 parser.add_argument('-a', '--args', metavar='ARGS', type=str, nargs=1, default='', help='Specify the other arguments needed, as one string')
 parser.add_argument('-r', '--referrer', metavar='REFERRER', type=str, nargs=1, default='', help='Specify how to get the player to send the HTTP REFERER header, if needed, as Python format string')
+parser.add_argument('-u', '--user-agent', metavar='USER_AGENT', type=str, nargs=1, default='', help='Specify how to get the player to send the HTTP User-Agent header, if needed, as Python format string')
 parser.add_argument('-s', '--source', metavar='SOURCE', type=str, nargs=1, default='', help='Specify how to pass the source into the player, as Python format string')
 parser.add_argument('-C', '--configure', metavar='CONFIG_FILE', type=str, nargs=1, default='', help='Specify a configure file that can set options and contain a list of M3U files to load. Otherwise, the program looks for show_m3u.ini in XDG_CONFIG_HOME or APPDATA if set in environment, or .show_m3urc in HOME')
 
@@ -440,6 +449,8 @@ if len(args.args) > 0:
     ARGS = args.args[0]
 if len(args.referrer) > 0:
     REFERRER = args.referrer[0]
+if len(args.user_agent) > 0:
+    USER_AGENT = args.user_agent[0]
 if len(args.source) > 0:
     SOURCE = args.source[0]
 
